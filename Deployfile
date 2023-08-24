@@ -1,0 +1,87 @@
+pipeline {
+    agent any
+ environment {
+        GCR_REGISTRY = "gcr.io" // Change to your GCR registry URL
+        DEST_PROJECT_ID = "terraform" // Change to your GCP Project ID
+        IMAGE_NAME = "java-webserver" // Change to your desired image name
+        IMAGE_TAG = "latest" // Change to your desired image tag
+    }
+     parameters {
+        string(name: 'PROJECT_ID', defaultValue: 'devopsjunction23', description: 'Google Cloud Project ID')
+        string(name: 'REGION', defaultValue: 'us-central1', description: 'Google Cloud Region')
+		string(name: 'DEST_PROJECT_ID', defaultValue: 'terraform-gcp-395808', description: 'Google Cloud destinationProject ID')
+		string(name: 'REPO_NAME', defaultValue: 'src', description: 'Google Cloud destinationProject ID')
+		string(name: 'DEST_REPO_NAME', defaultValue: 'dest', description: 'Google Cloud destinationProject ID')
+		string(name: 'LOCATION', defaultValue: 'US-central1', description: 'Google Cloud destinationProject ID')
+
+    }
+        stages {
+            stage('Parameters'){
+                steps {
+                    script {
+                    properties([
+                            parameters([
+                                [$class: 'ChoiceParameter', 
+                                    choiceType: 'PT_SINGLE_SELECT', 
+                                    description: 'Select the Environemnt from the Dropdown List', 
+                                    filterLength: 1, 
+                                    filterable: false, 
+                                    name: 'ENV', 
+                                    script: [
+                                        $class: 'GroovyScript', 
+                                        fallbackScript: [
+                                            classpath: [], 
+                                            sandbox: false, 
+                                            script: 
+                                                "return['Could not get The environemnts']"
+                                        ], 
+                                        script: [
+                                            classpath: [], 
+                                            sandbox: false, 
+                                            script: 
+                                                "return['test','prod']"
+                                        ]
+                                    ]
+                                ],
+                                
+                            ])
+                        ])
+                    }
+                }
+            }
+            stage('Deploy:Prep'){
+                steps{
+                     script{
+                        echo "selected enviornment :" +ENV
+                     }
+                }
+            }
+            stage('Deploy to Artifact registery and run'){
+                steps{
+                    script{
+                        echo 'Deploy jars'
+                         if (ENV.equals("test")){
+                                             def repositoryname = "${DEST_PROJECT_ID}-${env.BUILD_NUMBER}"
+                                               withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
+
+
+sh '''gcloud run deploy  --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082'''
+         
+ 
+                                                       }
+                                              }
+                                                   
+                                                    else (ENV.equals("prod")){
+
+                                                        sh '''gcloud run deploy  --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082'''
+
+                                                    }
+                    }
+                    }
+                                                   
+                                             
+                                                    
+                    
+        }
+                }
+            }
