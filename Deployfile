@@ -80,7 +80,22 @@ pipeline {
  
                                                        }
                                 }else {
+                                    def repositoryname = "${DEST_PROJECT_ID}-${env.BUILD_NUMBER}"
+                                    withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
+                                    def command = """
+                                    gcloud auth activate-service-account --key-file="$CRED"
+                                    gcloud config set project terra-project-396714
+                                    printf 'yes' | gcloud artifacts repositories create $repositoryname --repository-format=docker --location=us-central1 --description="created repo"
+                                    gcloud auth configure-docker  us-central1-docker.pkg.dev
+                                """
+                                    sh(script: command, returnStatus: true)
+                                    sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/global/gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terra-project-396714/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                                    sh "docker push us-central1-docker.pkg.dev/terra-project-396714/$repositoryname/gcr.io/devopsjunction23/hello-world"
 
+                                    def command1 = """
+                                    gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terra-project-396714/$repositoryname/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082
+                                    """
+                                     sh(script: command1, returnStdout: true).trim()
                                   
                                     }
                                 }
