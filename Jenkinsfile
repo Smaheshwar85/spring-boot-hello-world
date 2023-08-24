@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    withCredentials([file(credentialsId: 'cred_host', variable: 'CRED')]) {
+                   // withCredentials([file(credentialsId: 'cred_host', variable: 'CRED')]) {
                 // sh "docker build -t $dockerImageTag ."
                         sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
                   //def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
@@ -74,7 +74,7 @@ sh(script: command, returnStdout: true).trim()
                     //sh "docker build -t $dockerImageTag ."
                     //sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/my-project/my-repo/test-imagemy-image"
                     //sh "docker push us-central1-docker.pkg.dev/my-project/my-repo/test-imagemy-image"
-                    }
+                    //}
                 }
             }
         }
