@@ -64,9 +64,10 @@ pipeline {
                                              def repositoryname = "${DEST_PROJECT_ID}-${env.BUILD_NUMBER}"
                                                withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
 
-
-sh '''gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082'''
-         
+def command = """
+ gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082
+ """
+         sh(script: command, returnStdout: true).trim()
  
                                                        }
                                               }
