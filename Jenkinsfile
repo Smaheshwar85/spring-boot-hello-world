@@ -38,7 +38,7 @@ pipeline {
                   def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
 
                def command = """
-    gcloud auth activate-service-account --key-file="$CRED"
+    gcloud auth activate-service-account --key-file="$CRED1"
     printf 'yes' | gcloud artifacts repositories create $repositoryname  --repository-format=docker --location=us-central1 --description="created repo"
     gcloud auth configure-docker us-central1-docker.pkg.dev
 """
