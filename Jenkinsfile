@@ -44,7 +44,9 @@ pipeline {
 
                     withCredentials([file(credentialsId: 'cred', variable: 'CRED')]) {
                       sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
+                        
                                  def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
+                      echo "Current workspace is ${repositoryName}"
                              def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     printf 'yes' | gcloud artifacts repositories create $repositoryname --repository-format=docker --location=us-central1 --description="created repo"
@@ -54,8 +56,8 @@ pipeline {
                      
                             
                            
-                  sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/${repositoryname}/gcr.io/devopsjunction23/hello-world"
-                  sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/${repositoryname}/gcr.io/devopsjunction23/hello-world"
+                  sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                  sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
                  
                     }
                 }
