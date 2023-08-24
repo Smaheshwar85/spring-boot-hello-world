@@ -32,7 +32,7 @@ pipeline {
             steps {
                 script {
                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
-                   // withCredentials([file(credentialsId: 'cred_host', variable: 'CRED')]) {
+                    withCredentials([file(credentialsId: 'cred_host', variable: 'CRED')]) {
                 // sh "docker build -t $dockerImageTag ."
                         sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
                   //def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
@@ -52,8 +52,8 @@ pipeline {
                             
 
     def command = """
-   
-    gcloud config set project alert-result-396707
+    gcloud auth activate-service-account --key-file="$CRED"
+    gcloud config set project devopsjunction23
     printf 'yes' | gcloud artifacts repositories create global --repository-format=docker --location=us-central1 --description="created repo"
     gcloud artifacts repositories add-iam-policy-binding global --location=us-central1 --member=allUsers --role=roles/artifactregistry.admin
     gcloud auth configure-docker us-central1-docker.pkg.dev
@@ -63,8 +63,8 @@ pipeline {
 
 sh(script: command, returnStdout: true).trim()
 
-                 sh "docker tag us-central1-docker.pkg.dev/alert-result-396707/hello-world us-central1-docker.pkg.dev/devopsjunction23/global/gcr.io/alert-result-396707/hello-world"
-                  sh "docker push us-central1-docker.pkg.dev/alert-result-396707/global/gcr.io/devopsjunction23/hello-world"
+                 sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world us-central1-docker.pkg.dev/devopsjunction23/global/gcr.io/devopsjunction23/hello-world"
+                  sh "docker push us-central1-docker.pkg.dev/devopsjunction23/global/gcr.io/devopsjunction23/hello-world"
                         
                         //def commanddep = """
 // gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terra-project-396714/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082
@@ -74,7 +74,7 @@ sh(script: command, returnStdout: true).trim()
                     //sh "docker build -t $dockerImageTag ."
                     //sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/my-project/my-repo/test-imagemy-image"
                     //sh "docker push us-central1-docker.pkg.dev/my-project/my-repo/test-imagemy-image"
-                    //}
+                    }
                 }
             }
         }
