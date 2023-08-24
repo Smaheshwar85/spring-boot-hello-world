@@ -79,7 +79,7 @@ pipeline {
                                      sh(script: command1, returnStdout: true).trim()
  
                                                        }
-                                }else (ENV.equals("prod")){
+                                }else {
 
                                   
                                     }
