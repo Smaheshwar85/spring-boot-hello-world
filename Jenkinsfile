@@ -4,6 +4,7 @@
      tools {
     maven 'M3'
   }
+
 	  
  environment {
         GCR_REGISTRY = "gcr.io" // Change to your GCR registry URL
