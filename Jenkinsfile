@@ -49,15 +49,15 @@ pipeline {
                       echo "Current workspace is $repositoryName"
                              def command = """
     gcloud auth activate-service-account --key-file="$CRED"
-    printf 'yes' | gcloud artifacts repositories create "${repositoryname}" --repository-format=docker --location=us-central1 --description="created repo"
+    printf 'yes' | gcloud artifacts repositories create $repositoryname --repository-format=docker --location=us-central1 --description="created repo
     gcloud auth configure-docker us-central1-docker.pkg.dev
 """
                         sh(script: command, returnStdout: true).trim()
                      
                             
                            
-                  sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/"$repositoryname"/gcr.io/devopsjunction23/hello-world"
-                  sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/"${repositoryname}"/gcr.io/devopsjunction23/hello-world"
+                  sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                  sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
                  
                     }
                 }
