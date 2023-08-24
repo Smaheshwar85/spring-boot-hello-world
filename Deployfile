@@ -71,7 +71,7 @@ def command = """
    
 """
 sh(script: command, returnStatus: true)
- sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world-269/gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world "
+ sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/global/gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world "
                   sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
 
 def command1 = """
