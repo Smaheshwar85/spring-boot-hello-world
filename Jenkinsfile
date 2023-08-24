@@ -27,15 +27,7 @@ pipeline {
             }
         }
 
-        stage('Build Docker Image') {
-            steps {
-                script {
-                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    def dockerImage = docker.build(dockerImageTag, '.')
-                }
-            }
-        }
-
+    
         stage('Build Docker Image') {
             steps {
                 script {
