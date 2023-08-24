@@ -43,9 +43,11 @@ pipeline {
     gcloud auth configure-docker us-central1-docker.pkg.dev
 """
 
+                       
+
 sh(script: command, returnStdout: true).trim()
 
-                 sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                 sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
                   sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
                       
                     //sh "docker build -t $dockerImageTag ."
