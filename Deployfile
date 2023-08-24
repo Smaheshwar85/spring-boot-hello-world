@@ -65,7 +65,7 @@ pipeline {
                                                withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
 
 
-sh '''gcloud run deploy  --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082'''
+sh '''gcloud run deploy  SERVICE --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082'''
          
  
                                                        }
