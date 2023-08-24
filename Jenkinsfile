@@ -32,13 +32,13 @@ pipeline {
             steps {
                 script {
                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    withCredentials([file(credentialsId: 'cred1', variable: 'CRED1')]) {
+                    withCredentials([file(credentialsId: 'terraMachineOne', variable: 'TERRAMACHINEONE')]) {
                 // sh "docker build -t $dockerImageTag ."
                         sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
                   def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
 
                def command = """
-    gcloud auth activate-service-account --key-file="$CRED1"
+    gcloud auth activate-service-account --key-file="$TERRAMACHINEONE"
     printf 'yes' | gcloud artifacts repositories create $repositoryname  --repository-format=docker --location=us-central1 --description="created repo"
     gcloud auth configure-docker us-central1-docker.pkg.dev
 """
