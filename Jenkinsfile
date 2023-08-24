@@ -45,7 +45,7 @@ pipeline {
     def checkCondition= sh ''' gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 hello-world-269'''
                         //sh(script: checkCondition, returnStdout: true).trim()
                         echo "find value to delete. $checkCondition"
-  if ($checkCondition > null){
+  if (${checkCondition} > null){
     echo "Repository already exists. Deleting..."
   sh ''' gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
   }
