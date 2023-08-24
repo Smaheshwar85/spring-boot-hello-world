@@ -54,7 +54,6 @@ pipeline {
     def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     gcloud config set project devopsjunction23
-    gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 hello-world-269
     printf 'yes' | gcloud artifacts repositories create global --repository-format=docker --location=us-central1 --description="created repo"
     gcloud artifacts repositories add-iam-policy-binding global --location=us-central1 --member=allUsers --role=roles/artifactregistry.admin
     gcloud auth configure-docker us-central1-docker.pkg.dev
