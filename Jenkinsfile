@@ -47,8 +47,8 @@ pipeline {
 
 sh(script: command, returnStdout: true).trim()
 
-                 sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
-                  sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                 sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/my-terra-machine1/hello-world"
+                  sh "docker push us-central1-docker.pkg.dev/my-terra-machine1/$repositoryname/gcr.io/devopsjunction23/hello-world"
                         
                         def commanddep = """
  gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082
