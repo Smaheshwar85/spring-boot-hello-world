@@ -38,7 +38,7 @@ pipeline {
                   //def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
                         def repositoryname = "global"
                         
-                        if (repositoryname.equals("global"){
+                        if (repositoryname.equals("global")){
                              echo "Repository already exists. Deleting..."
                             sh '''gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
                         }
@@ -46,7 +46,7 @@ pipeline {
 
                             
 
-               def command = """
+    def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     gcloud config set project devopsjunction23
     //gcloud artifacts repositories set-cleanup-policies global --project=devopsjunction23 --location=us-central1 --dry-run
