@@ -76,7 +76,7 @@
                       <groupId>org.hibernate</groupId> 
                       <artifactId>hibernate-entitymanager</artifactId> 
                       <version>5.2.3.Final</version> 
-</dependency
+</dependency>
 		<dependency>
 			<groupId>com.h2database</groupId>
 			<artifactId>h2</artifactId>
