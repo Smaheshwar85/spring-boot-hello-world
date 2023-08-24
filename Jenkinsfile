@@ -42,8 +42,10 @@ pipeline {
                            //  echo "Repository already exists. Deleting..."
                             //sh '''gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
                       //  }
-
-  if (sh '''gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 &> /dev/null'''){
+    def checkCondition= sh ''' gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 '''
+                        //sh(script: checkCondition, returnStdout: true).trim()
+                        echo "find value to delete. $checkCondition"
+  if ($checkCondition &> /dev/null'''){
     echo "Repository already exists. Deleting..."
   sh ''' gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
   }
