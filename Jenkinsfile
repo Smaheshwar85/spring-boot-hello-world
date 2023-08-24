@@ -40,11 +40,11 @@ pipeline {
             steps {
                 script {
                     def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
-                    def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
+                    
 
                     withCredentials([file(credentialsId: 'cred', variable: 'CRED')]) {
                       sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
-
+                                 def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
                              def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     printf 'yes' | gcloud artifacts repositories create $repositoryname  --repository-format=docker --location=us-central1 --description="created repo"
