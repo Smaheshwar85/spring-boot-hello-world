@@ -1,58 +1,62 @@
-  pipeline{
-	  
-    agent any  
-     tools {
-    maven 'M3'
-  }
-	  
- environment {
-        GCR_REGISTRY = "gcr.io" // Change to your GCR registry URL
+pipeline {
+    agent any
+    tools {
+        maven 'M3'
+    }
+
+    environment {
+        GCR_REGISTRY = "us-central1-docker.pkg.dev" // Change to your GCR registry URL
         PROJECT_ID = "devopsjunction23" // Change to your GCP Project ID
-        IMAGE_NAME = "java-webserver" // Change to your desired image name
+        IMAGE_NAME = "hello-world" // Change to your desired image name
         IMAGE_TAG = "latest" // Change to your desired image tag
     }
-	
-        stages{
-		 stage('Git Checkout'){
-		     steps{
-	        git 'https://github.com/Smaheshwar85/spring-boot-hello-world'  
-	        
-           }
-		 }
 
-		
-        stage('Build') {
+    stages {
+        stage('Git Checkout') {
             steps {
-                // Assuming you have a Maven project
-                sh 'mvn clean package -DskipTests'
-                archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
+                git 'https://github.com/Smaheshwar85/spring-boot-hello-world'
             }
         }
-        
-        stage('Build Docker Image') {
+
+        stage('Build') {
             steps {
-                // Build the Docker image using the Dockerfile in the project directory
                 script {
-                    def dockerImage = docker.build("${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}", '.')
+                    sh 'mvn clean package -DskipTests'
+                    archiveArtifacts artifacts: '**/target/*.jar', allowEmptyArchive: true
                 }
             }
         }
-		
-		   stage('Push to GCR') {
+
+        stage('Build Docker Image') {
             steps {
-                // Authenticate with GCP using a service account key
-                //withCredentials([string(credentialsId: 'gcp-service-account-key', variable: 'GCP_SA_KEY')]) {
-                    //sh "echo ${GCP_SA_KEY} | base64 --decode > gcp-key.json"
-                   // sh "gcloud auth activate-service-account --key-file=gcp-key.json"
-                //}
-                
-                // Push the Docker image to GCR
-                sh "docker push ${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
+                script {
+                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    def dockerImage = docker.build(dockerImageTag, '.')
+                }
             }
         }
-    
-            
+
+        stage('Push to GCR') {
+            steps {
+                script {
+                    def dockerImageTag = "${GCR_REGISTRY}/${PROJECT_ID}/${IMAGE_NAME}:${IMAGE_TAG}"
+                    
+                    withCredentials([file(credentialsId: 'cred', variable: 'CRED')]) {
+                        sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
+                        def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
+                        
+                        def command = """
+                            gcloud auth activate-service-account --key-file="$CRED"
+                            printf 'yes' | gcloud artifacts repositories create $repositoryName --repository-format=docker --location=us-central1 --description="created repo"
+                            gcloud auth configure-docker us-central1-docker.pkg.dev
+                        """
+                        sh(script: command, returnStdout: true).trim()
+                        
+                        sh "docker tag $dockerImageTag us-central1-docker.pkg.dev/$PROJECT_ID/$repositoryName/$dockerImageTag"
+                        sh "docker push us-central1-docker.pkg.dev/$PROJECT_ID/$repositoryName/$dockerImageTag"
+                    }
+                }
+            }
+        }
     }
 }
-
-  
