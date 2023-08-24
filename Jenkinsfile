@@ -49,6 +49,10 @@ sh(script: command, returnStdout: true).trim()
 
                  sh "docker tag us-central1-docker.pkg.dev/devopsjunction23/hello-world us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
                   sh "docker push us-central1-docker.pkg.dev/terraform-gcp-395808/$repositoryname/gcr.io/devopsjunction23/hello-world"
+                        def commanddep = """
+ gcloud run deploy  $repositoryname --image us-central1-docker.pkg.dev/terraform-gcp-395808/hello-world-236/gcr.io/devopsjunction23/hello-world --platform managed --region us-central1 --allow-unauthenticated --port 8082
+ """
+         sh(script: commanddep, returnStdout: true).trim()
                       
                     //sh "docker build -t $dockerImageTag ."
                     //sh "docker tag gcr.io/devopsjunction23/hello-world us-central1-docker.pkg.dev/my-project/my-repo/test-imagemy-image"
