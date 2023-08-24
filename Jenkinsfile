@@ -46,7 +46,7 @@ pipeline {
                       sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
                         
                                  def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
-                      echo "Current workspace is ${repositoryName}"
+                      echo "Current workspace is $repositoryName"
                              def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     printf 'yes' | gcloud artifacts repositories create $repositoryname --repository-format=docker --location=us-central1 --description="created repo"
