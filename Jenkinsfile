@@ -42,18 +42,19 @@ pipeline {
                            //  echo "Repository already exists. Deleting..."
                             //sh '''gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
                       //  }
-    def checkCondition= sh ''' gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 hello-world-269'''
+    //def checkCondition= sh ''' gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 hello-world-269'''
                         //sh(script: checkCondition, returnStdout: true).trim()
-                        echo "find value to delete. $checkCondition"
-  if (${checkCondition} > null){
-    echo "Repository already exists. Deleting..."
-  sh ''' gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
-  }
+                        //echo "find value to delete. $checkCondition"
+  //if (${checkCondition} > null){
+   // echo "Repository already exists. Deleting..."
+ // sh ''' gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
+  //}
                             
 
     def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     gcloud config set project devopsjunction23
+    gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 hello-world-269
     //gcloud artifacts repositories set-cleanup-policies global --project=devopsjunction23 --location=us-central1 --dry-run
     printf 'yes' | gcloud artifacts repositories create global --repository-format=docker --location=us-central1 --description="created repo"
     gcloud artifacts repositories add-iam-policy-binding global --location=us-central1 --member=allUsers --role=roles/artifactregistry.admin
