@@ -43,7 +43,7 @@ pipeline {
                     def repositoryName = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
 
                     withCredentials([file(credentialsId: 'cred', variable: 'CRED')]) {
-                        docker buildx build --platform linux/amd64 -t $dockerImageTag .
+                      sh "docker buildx build --platform linux/amd64 -t $dockerImageTag ."
 
                              def command = """
     gcloud auth activate-service-account --key-file="$CRED"
