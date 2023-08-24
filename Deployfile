@@ -85,7 +85,7 @@ def command1 = """
                                                     else (ENV.equals("prod")){
 
                                                 def repositoryname = "${DEST_PROJECT_ID}-${env.BUILD_NUMBER}"
-                                             //  withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
+                                               withCredentials([file(credentialsId: 'cred', variable: 'CRED')]){
 def command = """
     gcloud auth activate-service-account --key-file="$CRED"
     gcloud config set project terra-project-396714
@@ -102,7 +102,7 @@ def command1 = """
  """
          sh(script: command1, returnStdout: true).trim()
  
-                                                 //   }
+                                                 }
                     }
                     }
                                                    
