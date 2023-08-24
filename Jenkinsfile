@@ -38,12 +38,15 @@ pipeline {
                   //def repositoryname = "${IMAGE_NAME}-${env.BUILD_NUMBER}"
                         def repositoryname = "global"
                         
-                        if (repositoryname.equals("global")){
-                             echo "Repository already exists. Deleting..."
-                            sh '''gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
-                        }
+                      //  if (repositoryname.equals("global")){
+                           //  echo "Repository already exists. Deleting..."
+                            //sh '''gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
+                      //  }
 
-
+  if (sh '''gcloud artifacts repositories describe --project=devopsjunction23 --location=us-central1 &> /dev/null'''){
+    echo "Repository already exists. Deleting..."
+  sh ''' gcloud artifacts repositories delete --quiet --project=devopsjunction23 --location=us-central1 $repositoryname'''
+  }
                             
 
     def command = """
