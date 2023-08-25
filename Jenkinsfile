@@ -85,5 +85,6 @@ sh(script: command, returnStdout: true).trim()
               //  sh 'docker rmi -f $(docker images -f "dangling=true" -q)'
            // }
         //}
+        
     }
 }
