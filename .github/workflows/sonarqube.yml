@@ -1,0 +1,41 @@
+name: SonarQube Scan
+
+on:
+  push:
+    branches:
+      - main
+  pull_request:
+
+jobs:
+  sonar-scan:
+    runs-on: self-hosted # Specify self-hosted runner
+
+    steps:
+      # Step 1: Checkout the code
+      - name: Checkout code
+        uses: actions/checkout@v3
+
+      # Step 2: Set up Java (required for SonarQube CLI)
+      - name: Set up Java
+        uses: actions/setup-java@v3
+        with:
+          java-version: '11' # SonarQube requires Java 11 or 17
+
+      # Step 3: Install Sonar Scanner CLI (if not pre-installed on the runner)
+      - name: Install Sonar Scanner
+        run: |
+          wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
+          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+          mv sonar-scanner-4.8.0.2856-linux sonar-scanner
+          export PATH=$PATH:$PWD/sonar-scanner/bin
+
+      # Step 4: Run Sonar Scanner with Local SonarQube Server
+      - name: Run SonarQube Scan
+        env:
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Use the secret added earlier
+        run: |
+          sonar-scanner \
+            -Dsonar.projectKey=your_project_key \
+            -Dsonar.sources=. \
+            -Dsonar.host.url=http://localhost:9000 \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
