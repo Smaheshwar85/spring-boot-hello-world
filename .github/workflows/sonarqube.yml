@@ -32,11 +32,14 @@ jobs:
           Write-Host "Sonar Scanner is installed in: $PWD/sonar-scanner/bin" # Debug: Print path to ensure it is correct
           Write-Host "Current PATH: $env:PATH" # Debug: Print current PATH
 
-      # Step 4: Run Sonar Scanner with Local SonarQube Server
+      # Step 4: Run SonarQube Scan
       - name: Run SonarQube Scan
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Use the secret added earlier
         run: |
+          # Ensure path is available for this step
+          $env:PATH = "$env:PATH;$PWD/sonar-scanner/bin" # Add Sonar Scanner to the PATH
+          Write-Host "Running sonar-scanner with PATH: $env:PATH" # Debug: Ensure sonar-scanner is available
           sonar-scanner \
             -Dsonar.projectKey=zClient \
             -Dsonar.sources=. \
