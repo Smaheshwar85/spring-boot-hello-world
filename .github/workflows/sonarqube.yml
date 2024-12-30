@@ -1,43 +1,36 @@
-name: SonarQube Scan
-
 on:
   push:
     branches:
       - main
-  pull_request:
 
 jobs:
-  sonar-scan:
-    runs-on: self-hosted # Specify self-hosted runner
+  Build:
+    name: Build and analyze
+    runs-on: [self-hosted, ubuntu-latest]  # Use self-hosted runner
 
     steps:
-      # Step 1: Checkout the code
-      - name: Checkout code
-        uses: actions/checkout@v3
-
-     # Step 2: Set up Java 17 (required for SonarQube CLI)
-      - name: Set up Java 17
-        uses: actions/setup-java@v3
+      - uses: actions/checkout@v4
         with:
-          java-version: '17'  # SonarQube requires Java 17
-          distribution: 'temurin'  # Specify the Java distribution
-
-      # Step 3: Install Sonar Scanner
-      - name: Install Sonar Scanner
-        run: |
-          wget -O sonar-scanner-cli-4.8.0.2856-linux.zip https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-          Expand-Archive -Path sonar-scanner-cli-4.8.0.2856-linux.zip -DestinationPath . # Ensure file path is correct
-          mv sonar-scanner-4.8.0.2856-linux sonar-scanner
-          $env:PATH = "$env:PATH;$PWD/sonar-scanner/bin" # Add Sonar Scanner to the PATH environment variable
-          Write-Host "Sonar Scanner is installed in: $PWD/sonar-scanner/bin" # Debug: Print path to ensure it is correct
-          Write-Host "Current PATH: $env:PATH" # Debug: Print current PATH
-
-      # Step 4: Run SonarQube Scan
-      - name: Run SonarQube Scan
+          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+      - name: Set up JDK 17
+        uses: actions/setup-java@v4
+        with:
+          java-version: 17
+          distribution: 'zulu'  # Alternative distribution options are available.
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+      - name: Cache Maven packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.m2
+          key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
+          restore-keys: ${{ runner.os }}-m2
+      - name: Build and analyze
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Use the secret added earlier
-        run: |
-          # Ensure path is available for this step
-          $env:PATH = "$env:PATH;$PWD/sonar-scanner/bin" # Add Sonar Scanner to the PATH
-          Write-Host "Running sonar-scanner with PATH: $env:PATH" # Debug: Ensure sonar-scanner is available
-          sonar-scanner -Dsonar.projectKey=zClient -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Build -Dsonar.projectName='Build'
