@@ -35,7 +35,7 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }} # Use the secret added earlier
         run: |
           sonar-scanner \
-            -Dsonar.projectKey=your_project_key \
+            -Dsonar.projectKey=zClient \
             -Dsonar.sources=. \
             -Dsonar.host.url=http://localhost:9000 \
             -Dsonar.login=${{ secrets.SONAR_TOKEN }}
