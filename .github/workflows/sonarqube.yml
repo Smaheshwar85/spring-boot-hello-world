@@ -40,8 +40,4 @@ jobs:
           # Ensure path is available for this step
           $env:PATH = "$env:PATH;$PWD/sonar-scanner/bin" # Add Sonar Scanner to the PATH
           Write-Host "Running sonar-scanner with PATH: $env:PATH" # Debug: Ensure sonar-scanner is available
-          sonar-scanner \
-            -Dsonar.projectKey=zClient \
-            -Dsonar.sources=. \
-            -Dsonar.host.url=http://localhost:9000 \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          sonar-scanner -Dsonar.projectKey=zClient -Dsonar.sources=. -Dsonar.host.url=http://localhost:9000 -Dsonar.login=${{ secrets.SONAR_TOKEN }}
