@@ -26,8 +26,10 @@ public class HelloWorldController {
     public static final String MESSAGE_KEY = "message";
     public static final String HOSTNAME_KEY = "hostname";
     public static final String IP_KEY = "ip";
-    String str = null;
-    String abc = str.length();
+   public void nullPointerRisk() {
+        String str = null;
+        str.length();  // This will throw NullPointerException
+    }
 
     @GetMapping(path = "/", produces = MediaType.APPLICATION_JSON_UTF8_VALUE)
     public Map<String, String> helloWorld() throws UnknownHostException {
