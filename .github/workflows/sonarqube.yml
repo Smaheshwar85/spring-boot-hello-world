@@ -20,7 +20,7 @@ jobs:
         uses: actions/setup-java@v3
         with:
           java-version: '17'  # SonarQube requires Java 17
-          distribution: 'adoptopenjdk'  # Specify the Java distribution
+          distribution: 'temurin'  # Specify the Java distribution
 
       # Step 3: Install Sonar Scanner CLI (if not pre-installed on the runner)
       - name: Install Sonar Scanner
