@@ -9,30 +9,39 @@ jobs:
     runs-on: self-hosted  # Use self-hosted runner
 
     steps:
-      - uses: actions/checkout@v4
+      - name: Checkout code
+        uses: actions/checkout@v4
         with:
-          fetch-depth: 0  # Shallow clones should be disabled for better relevancy of analysis
+          fetch-depth: 0  # Ensure full history for better analysis relevance
+
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
-          distribution: 'zulu'  # Alternative distribution options are available.
+          distribution: 'zulu'  # Optional, alternative distributions are available.
+
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
           path: ~/.sonar/cache
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2
+          path: ~/.m2/repository  # Corrected path for Maven cache
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
+
       - name: Build and analyze with Maven and SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Make sure SONAR_TOKEN is set in GitHub Secrets
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Make sure SONAR_HOST_URL is set in GitHub Secrets
         run: |
           mvn clean install -DskipTests  # Optional: Skips tests during build
-          mvn sonar:sonar -Dsonar.projectKey=zClient -Dsonar.projectName='zClient' -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
+          mvn sonar:sonar \
+            -Dsonar.projectKey=zClient \
+            -Dsonar.projectName='zClient' \
+            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
+            -Dsonar.login=${{ secrets.SONAR_TOKEN }}
