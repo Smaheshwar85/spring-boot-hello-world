@@ -6,7 +6,7 @@ on:
 jobs:
   Build:
     name: Build and analyze
-    runs-on: [self-hosted, ubuntu-latest]  # Use self-hosted runner
+    runs-on: self-hosted  # Use self-hosted runner
 
     steps:
       - uses: actions/checkout@v4
@@ -33,4 +33,4 @@ jobs:
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
-        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=Build -Dsonar.projectName='Build'
+        run: mvn -B verify org.sonarsource.scanner.maven:sonar-maven-plugin:sonar -Dsonar.projectKey=zClient -Dsonar.projectName='zClient'
