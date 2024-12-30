@@ -57,11 +57,7 @@
             <version>3.12.4</version>
             <scope>test</scope>
         </dependency>
-         <dependency>
-            <groupId>org.sonarsource.scanner.maven</groupId>
-            <artifactId>sonar-maven-plugin</artifactId>
-            <version>3.9.0.918</version>
-        </dependency>
+         
         <!-- AssertJ for fluent assertions -->
         <dependency>
             <groupId>org.assertj</groupId>
