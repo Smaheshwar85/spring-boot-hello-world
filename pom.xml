@@ -21,13 +21,11 @@
 	<properties>
 		<project.build.sourceEncoding>UTF-8</project.build.sourceEncoding>
 		<project.reporting.outputEncoding>UTF-8</project.reporting.outputEncoding>
-		<java.version>1.17</java.version>
+		<java.version>17</java.version> <!-- Use Java 17 -->
 	</properties>
 
 	<dependencies>
-
 		<dependency>
-
 			<groupId>org.springframework.boot</groupId>
 			<artifactId>spring-boot-starter</artifactId>
 		</dependency>
@@ -99,7 +97,6 @@
 			<artifactId>jackson-datatype-joda</artifactId>
 		</dependency>
 
-
 		<!-- testing tools -->
 		<dependency>
 			<groupId>org.junit.jupiter</groupId>
@@ -126,12 +123,9 @@
 			<artifactId>spring-test</artifactId>
 			<scope>test</scope>
 		</dependency>
-
 	</dependencies>
 
 	<build>
-
-
 		<plugins>
 			<plugin>
 				<groupId>org.springframework.boot</groupId>
@@ -173,6 +167,7 @@
 				<artifactId>sonar-maven-plugin</artifactId>
 				<version>3.2</version>
 			</plugin>
+
 			<plugin>
 				<groupId>org.jacoco</groupId>
 				<artifactId>jacoco-maven-plugin</artifactId>
@@ -189,25 +184,23 @@
 					</execution>
 				</executions>
 			</plugin>
+
+			<!-- Updated Maven Compiler Plugin for Java 17 -->
 			<plugin>
 				<groupId>org.apache.maven.plugins</groupId>
 				<artifactId>maven-compiler-plugin</artifactId>
 				<configuration>
-					<source>1.8</source>
-					<target>1.8</target>
+					<source>17</source>
+					<target>17</target>
 				</configuration>
 			</plugin>
-			<build>
-    
-        <plugin>
-            <groupId>org.apache.maven.plugins</groupId>
-            <artifactId>maven-surefire-plugin</artifactId>
-            <version>3.0.0-M5</version> <!-- Update to the latest version -->
-        </plugin>
-    
+
+			<!-- Updated Maven Surefire Plugin for Java 17 Compatibility -->
+			<plugin>
+				<groupId>org.apache.maven.plugins</groupId>
+				<artifactId>maven-surefire-plugin</artifactId>
+				<version>3.0.0-M5</version> <!-- Updated to the latest version -->
+			</plugin>
 		</plugins>
-
 	</build>
-
-
 </project>
