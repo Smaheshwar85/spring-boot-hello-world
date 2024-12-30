@@ -22,11 +22,11 @@ jobs:
           java-version: '17'  # SonarQube requires Java 17
           distribution: 'temurin'  # Specify the Java distribution
 
-     # Step 3: Install Sonar Scanner
+   # Step 3: Install Sonar Scanner
       - name: Install Sonar Scanner
         run: |
           wget https://binaries.sonarsource.com/Distribution/sonar-scanner-cli/sonar-scanner-cli-4.8.0.2856-linux.zip
-          unzip sonar-scanner-cli-4.8.0.2856-linux.zip
+          Expand-Archive -Path sonar-scanner-cli-4.8.0.2856-linux.zip -DestinationPath . # Use Expand-Archive for extracting ZIP files
           mv sonar-scanner-4.8.0.2856-linux sonar-scanner
           $env:PATH = "$env:PATH;$PWD/sonar-scanner/bin"
 
