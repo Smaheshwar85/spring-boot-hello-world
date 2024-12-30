@@ -34,9 +34,5 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Make sure SONAR_TOKEN is set in GitHub Secrets
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Make sure SONAR_HOST_URL is set in GitHub Secrets
         run: |
-          mvn clean install -DskipTests  # Optional: Skips tests during build, can be adjusted
-          mvn sonar:sonar \
-            -Dsonar.projectKey=zClient \
-            -Dsonar.projectName='zClient' \
-            -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} \
-            -Dsonar.login=${{ secrets.SONAR_TOKEN }}  # Pass SonarQube token for authentication
+          mvn clean install -DskipTests  # Optional: Skips tests during build
+          mvn sonar:sonar -Dsonar.projectKey=zClient -Dsonar.projectName='zClient' -Dsonar.host.url=${{ secrets.SONAR_HOST_URL }} -Dsonar.login=${{ secrets.SONAR_TOKEN }}
