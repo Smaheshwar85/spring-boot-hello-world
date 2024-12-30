@@ -15,7 +15,7 @@ import org.mockito.junit.MockitoJUnitRunner;
 public class HelloWorldControllerTest {
 
     private Map<String, String> result;
-    
+
     @InjectMocks
     private HelloWorldController controller;
 
@@ -25,5 +25,4 @@ public class HelloWorldControllerTest {
         
         assertThat(result).containsKey(MESSAGE_KEY);
     }
-    
 }
