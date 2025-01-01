@@ -52,7 +52,8 @@ jobs:
         
       - name: Run OWASP ZAP Scan
         run: |
-          docker run --rm -u zap -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py -t http://host.docker.internal:8080 -r zap-report.html
+          docker run --rm -u zap -v ${PWD}:/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py -t http://host.docker.internal:8080 -r zap-report.html
+
           echo "OWASP ZAP Scan completed"
 
       - name: Upload ZAP report
