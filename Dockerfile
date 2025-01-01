@@ -5,7 +5,7 @@ FROM openjdk:17-jdk-slim
 WORKDIR /app
 
 # Copy the compiled JAR file to the container
-COPY target/my-spring-boot-app.jar /app/my-spring-boot-app.jar
+COPY target/spring-boot-hello-world-1.0-SNAPSHOT.jar /app/spring-boot-hello-world-1.0-SNAPSHOT.jar
 
 # Expose port 8080
 EXPOSE 8080
