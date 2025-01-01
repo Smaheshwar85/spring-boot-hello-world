@@ -1,9 +1,15 @@
-FROM openjdk:8-jdk-alpine
-VOLUME /tmp
+# Use official openjdk image as the base image
+FROM openjdk:17-jdk-slim
 
-ARG JAR_FILE
-ADD target/spring-boot-hello-world-1.0.0-SNAPSHOT.jar app.jar
+# Set the working directory inside the container
+WORKDIR /app
 
-ENV JAR_OPTS=""
-ENV JAVA_OPTS=""
-ENTRYPOINT exec java $JAVA_OPTS -Djava.security.egd=file:/dev/./urandom -jar /app.jar $JAR_OPTS
+# Copy the compiled JAR file to the container
+COPY target/my-spring-boot-app.jar /app/my-spring-boot-app.jar
+
+# Expose port 8080
+EXPOSE 8080
+
+# Command to run the application
+ENTRYPOINT ["java", "-jar", "my-spring-boot-app.jar"]
+
