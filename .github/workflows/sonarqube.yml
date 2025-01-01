@@ -47,7 +47,7 @@ jobs:
         
       - name: Run the Spring Boot App in Docker
         run: |
-          docker run -d -p 8080:8080 my-spring-boot-app
+          docker run -d -p 8081:8080 my-spring-boot-app
           echo "Spring Boot app is running in Docker at http://localhost:8080"
         
       - name: Run OWASP ZAP Scan
