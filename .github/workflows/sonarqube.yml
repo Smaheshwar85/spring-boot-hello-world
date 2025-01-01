@@ -38,3 +38,30 @@ jobs:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Make sure SONAR_TOKEN is set in GitHub Secrets
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Make sure SONAR_HOST_URL is set in GitHub Secrets
         run: mvn clean verify sonar:sonar  
+      - name: Build the project
+        run: mvn clean install
+
+      - name: Build Docker Image for Spring Boot App
+        run: |
+          docker build -t my-spring-boot-app .
+        
+      - name: Run the Spring Boot App in Docker
+        run: |
+          docker run -d -p 8080:8080 my-spring-boot-app
+          echo "Spring Boot app is running in Docker at http://localhost:8080"
+        
+      - name: Run OWASP ZAP Scan
+        run: |
+          docker run --rm -u zap -v --network host -v $(pwd):/zap/wrk/:rw owasp/zap2docker-stable zap-full-scan.py -t http://localhost:8080 -r zap-report.html
+          echo "OWASP ZAP Scan completed"
+
+      - name: Upload ZAP report
+        uses: actions/upload-artifact@v3
+        with:
+          name: zap-report
+          path: zap-report.html
+
+      - name: Stop Docker Container
+        run: |
+          docker ps -q --filter "ancestor=my-spring-boot-app" | xargs docker stop
+          echo "Stopped Spring Boot app container"
