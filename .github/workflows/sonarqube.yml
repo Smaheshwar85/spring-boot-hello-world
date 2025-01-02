@@ -52,7 +52,7 @@ jobs:
         
       - name: Run OWASP ZAP Scan
         run: |
-            docker run --rm -u zap -v "${{ github.workspace }}:/zap/wrk/:rw" zaproxy/zap-stable zap-full-scan.py -t http://host.docker.internal:8080 -r zap-report.html
+            docker run --rm -u zap -v "${{ github.workspace }}:/zap/wrk/:rw" zaproxy/zap-stable zap-full-scan.py -t http://host.docker.internal:8080 -r zap-report.html -z "-config scanner.alertThreshold=LOW -config api.disablekey=true"
             echo "OWASP ZAP Scan completed"
 
       - name: Upload ZAP report
