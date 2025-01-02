@@ -1,7 +1,7 @@
 on:
   push:
     branches:
-      - main
+      - main  # Trigger on push to the main branch
 
 jobs:
   Build:
@@ -9,17 +9,20 @@ jobs:
     runs-on: self-hosted  # Use self-hosted runner
 
     steps:
+      # Step 1: Checkout code
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Ensure full history for better analysis relevance
 
+      # Step 2: Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
-          distribution: 'zulu'  # Optional, alternative distributions are available.
+          distribution: 'zulu'
 
+      # Step 3: Cache SonarQube packages
       - name: Cache SonarQube packages
         uses: actions/cache@v4
         with:
@@ -27,6 +30,7 @@ jobs:
           key: ${{ runner.os }}-sonar
           restore-keys: ${{ runner.os }}-sonar
 
+      # Step 4: Cache Maven packages
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -34,19 +38,23 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
+      # Step 5: Build and Analyze with Maven and SonarQube
       - name: Build and Analyze with Maven and SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn clean verify sonar:sonar
 
+      # Step 6: Build the Project
       - name: Build the Project
         run: mvn clean install
 
+      # Step 7: Build Docker Image for Spring Boot App
       - name: Build Docker Image for Spring Boot App
         run: |
           docker build -t my-spring-boot-app .
 
+      # Step 8: Run the Spring Boot App in Docker
       - name: Run the Spring Boot App in Docker
         run: |
           docker run -d -p 8081:8080 my-spring-boot-app
@@ -55,37 +63,44 @@ jobs:
   zap-scan:
     name: ZAP Scan Baseline
     runs-on: self-hosted  # Use self-hosted runner
-    needs: Build  # This ensures zap-scan will only run after Build is completed
+    needs: Build  # Ensure ZAP scan starts after build completes
     continue-on-error: true
 
     steps:
-      # Step 1: Checkout the code from the repository
+      # Step 1: Checkout code (again for the ZAP scan job)
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Install touch (if missing)
-      - name: Install touch (if missing)
+      # Step 2: Ensure zap.yaml exists and set permissions (for Windows compatibility)
+      - name: Ensure zap.yaml exists and set permissions
         run: |
-          sudo apt-get update
-          sudo apt-get install -y coreutils
+          if ($env:OS -eq "Windows_NT") {
+            # Ensure zap.yaml exists for Windows
+            if (-Not (Test-Path "/zap/wrk/.github/zap/zap.yaml")) {
+              New-Item -ItemType File -Path "/zap/wrk/.github/zap/zap.yaml" -Force
+            }
+            icacls "/zap/wrk/.github/zap/zap.yaml" /grant Everyone:F  # Windows-specific permissions
+          } else {
+            chmod a+rwx '/zap/wrk/.github/zap/zap.yaml'  # Linux version: Ensure file is readable and writable
+          }
 
       # Step 3: Run ZAP Scan using the zaproxy/action-baseline action
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token for authentication
-          target: "http://host.docker.internal:8080"  # Pointing to your local Docker container
+          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token instead of GITHUB_TOKEN
+          target: "http://host.docker.internal:8080"  # Update to point to your local Docker container
           cmd_options: |
-            chmod a+rwx '/zap/wrk/zap.yaml'  # Ensure the zap.yaml file has appropriate permissions
-          allow_issue_writing: false  # Don't allow automatic writing of issues
+            chmod a+rwx '/zap/wrk/.github/zap/zap.yaml'  # Path to zap.yaml file
+          allow_issue_writing: false
 
-      # Step 4: Upload the ZAP Scan report as an artifact
+      # Step 4: Upload Scan Report
       - name: Upload Scan Report
         uses: actions/upload-artifact@v4
         with:
-          name: zap_report.html  # The name of the artifact to be uploaded
+          name: zap_report.html  # Name of the artifact to be uploaded
           path: zap-report.html  # Path to the generated ZAP scan report
-          retention-days: 1  # Set the retention period for the artifact
+          retention-days: 1  # Retain the artifact for 1 day
 
   StopDocker:
     name: Stop Docker Container
