@@ -52,7 +52,7 @@ jobs:
         
       - name: Run OWASP ZAP Scan
         run: |
-            docker container run -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap.sh -cmd -h
+            docker run -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap.sh -cmd -h
 
             echo "OWASP ZAP Scan completed"
 
