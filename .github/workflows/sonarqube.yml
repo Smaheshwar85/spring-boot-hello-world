@@ -1,10 +1,11 @@
 on:
   push:
     branches:
-      - main      
+      - main  # Trigger workflow when pushing to the main branch
+
 jobs:
   Build:
-    name: Build and analyze
+    name: Build and Analyze
     runs-on: self-hosted  # Use self-hosted runner
 
     steps:
@@ -29,40 +30,62 @@ jobs:
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
-          path: ~/.m2/repository  # Corrected path for Maven cache
+          path: ~/.m2/repository
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      - name: Build and analyze with Maven and SonarQube
+      - name: Build and Analyze with Maven and SonarQube
         env:
-          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}  # Make sure SONAR_TOKEN is set in GitHub Secrets
-          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}  # Make sure SONAR_HOST_URL is set in GitHub Secrets
-        run: mvn clean verify sonar:sonar  
-      - name: Build the project
+          SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
+          SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
+        run: mvn clean verify sonar:sonar
+
+      - name: Build the Project
         run: mvn clean install
 
       - name: Build Docker Image for Spring Boot App
         run: |
           docker build -t my-spring-boot-app .
-        
+
       - name: Run the Spring Boot App in Docker
         run: |
           docker run -d -p 8081:8080 my-spring-boot-app
           echo "Spring Boot app is running in Docker at http://localhost:8080"
-        
-      - name: Run OWASP ZAP Scan
-        run: |
-            docker run -v $(pwd):/zap/wrk/:rw owasp/zap2docker-weekly zap.sh -cmd -h
 
-            echo "OWASP ZAP Scan completed"
+  zap-scan:
+    name: ZAP Scan Baseline
+    runs-on: self-hosted  # Use self-hosted runner
+    continue-on-error: true  # Continue even if ZAP scan fails
 
-      - name: Upload ZAP report
-        uses: actions/upload-artifact@v3
+    steps:
+      # Step 1: Checkout the code from the repository
+      - name: Checkout code
+        uses: actions/checkout@v4
+
+      # Step 2: Run ZAP Scan using the zaproxy/action-baseline action
+      - name: ZAP Scan
+        uses: zaproxy/action-baseline@v0.12.0
         with:
-          name: zap-report
-          path: zap-report.html
+          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token for authentication
+          target: "http://host.docker.internal:8080"  # Pointing to the local Docker container
+          cmd_options: |
+            chmod a+rwx '/zap/wrk/zap.yaml'  # Ensure the zap.yaml file has appropriate permissions
+          allow_issue_writing: false  # Don't allow automatic writing of issues
 
-      - name: Stop Docker Container
+      # Step 3: Upload the ZAP Scan report as an artifact
+      - name: Upload Scan Report
+        uses: actions/upload-artifact@v4
+        with:
+          name: zap_report.html  # The name of the artifact to be uploaded
+          path: zap-report.html  # Path to the generated ZAP scan report
+          retention-days: 1  # Set the retention period for the artifact
+
+  StopDocker:
+    name: Stop Docker Container
+    runs-on: ubuntu-latest
+    needs: zap-scan  # Run after zap-scan job completes
+    steps:
+      - name: Stop Spring Boot App Container
         run: |
           docker ps -q --filter "ancestor=my-spring-boot-app" | xargs docker stop
           echo "Stopped Spring Boot app container"
