@@ -1,0 +1,9 @@
+scan:
+  # URL to start the scan on
+  url: "http://host.docker.internal:8080"
+  # Set the scan type (can be 'full', 'spider', etc.)
+  scan_type: "full"
+  # Configure whether to allow scanning of specific URLs or not
+  allow_insecure_certs: true
+
+# Additional configuration settings can go here
