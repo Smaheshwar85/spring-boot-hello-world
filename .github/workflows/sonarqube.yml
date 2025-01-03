@@ -37,8 +37,10 @@ jobs:
       - name: Build Docker Image
         run: docker build -t my-spring-boot-app .
 
-      - name: Run Docker Container
-        run: docker run -d -p 8081:8080 --name my-app-containers my-spring-boot-app
+      - name: Run the Spring Boot App in Docker
+        run: |
+          docker run -d -p 8081:8080 my-spring-boot-app
+          echo "Spring Boot app is running in Docker at http://localhost:8081"
 
   zap-scan:
     name: ZAP Scan Baseline
