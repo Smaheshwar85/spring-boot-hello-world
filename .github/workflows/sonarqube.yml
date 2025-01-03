@@ -51,9 +51,19 @@ jobs:
       - name: Create zap.yaml File
         run: |
           $zapFile = ".github\workflows\zap.yaml"
-          if (-Not (Test-Path $zapFile)) {
-            New-Item -ItemType File -Path $zapFile -Force
-          }
+
+              # Ensure the parent directory exists
+              if (-Not (Test-Path ".github\workflows")) {
+              New-Item -ItemType Directory -Path ".github\workflows" -Force
+                }
+
+              # Check if file exists, create if it doesn't
+              if (-Not (Test-Path $zapFile)) {
+              New-Item -ItemType File -Path $zapFile -Force
+              Write-Output "File '$zapFile' has been created."
+              } else {
+              Write-Output "File '$zapFile' already exists."
+              }
 
       - name: Run ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
