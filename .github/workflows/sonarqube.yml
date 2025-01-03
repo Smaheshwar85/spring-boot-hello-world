@@ -50,22 +50,15 @@ jobs:
       - name: Checkout code
         uses: actions/checkout@v4
 
-      - name: Create zap.yaml File
+      - name: Set File Permissions for rules.tsv
+        shell: pwsh
         run: |
-          $zapFile = ".github\workflows\zap.yaml"
-
-          # Ensure the parent directory exists
-          if (-Not (Test-Path ".github\workflows")) {
-            New-Item -ItemType Directory -Path ".github\workflows" -Force
-          }
-
-          # Check if file exists, create if it doesn't
-          if (-Not (Test-Path $zapFile)) {
-            New-Item -ItemType File -Path $zapFile -Force
-            Write-Output "File '$zapFile' has been created."
-          } else {
-            Write-Output "File '$zapFile' already exists."
-          }
+          $file = "C:\actions-runner\_work\spring-boot-hello-world\spring-boot-hello-world\.github\workflows\rules.tsv"  # Adjust file path
+          $acl = Get-Acl $file
+          $permission = "Everyone", "FullControl", "Allow"
+          $accessRule = New-Object System.Security.AccessControl.FileSystemAccessRule $permission
+          $acl.SetAccessRule($accessRule)
+          Set-Acl $file $acl
 
       - name: Run ZAP Scan
         uses: zaproxy/action-baseline@v0.14.0
@@ -74,14 +67,13 @@ jobs:
           target: "http://host.docker.internal:8080"  # Change this to the URL of your app
           docker_name: 'ghcr.io/zaproxy/zaproxy:stable'  # ZAP Docker image to use
           rules_file_name: '.github/workflows/rules.tsv'  # Path to custom rules file (optional)
-          cmd_options: '-a'  # ZAP scan options
+          cmd_options: '-a'  # ZAP scan option
 
       - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
           name: zap-report
           path: zap-report.html
-
   StopDocker:
     name: Stop Docker Container
     runs-on: self-hosted
