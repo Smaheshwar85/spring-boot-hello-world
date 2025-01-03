@@ -49,7 +49,7 @@ jobs:
 
       - name: Create zap.yaml File
         run: |
-          $zapFile = "C:\zap\wrk\.github\workflows\zap.yaml"
+          $zapFile = ".github\workflows\zap.yaml"
           if (-Not (Test-Path $zapFile)) {
             New-Item -ItemType File -Path $zapFile -Force
           }
