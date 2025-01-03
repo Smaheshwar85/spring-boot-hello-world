@@ -8,7 +8,7 @@ on:
 jobs:
   Build:
     name: Build and Analyze
-    runs-on: self-hosted  # Use self-hosted runner
+    runs-on: self-hosted  # Use self-hosted Windows runner
 
     steps:
       # Step 1: Checkout the code from the repository
@@ -47,33 +47,28 @@ jobs:
       # Step 6: Run the Spring Boot App in Docker
       - name: Run the Spring Boot App in Docker
         run: |
-          docker run -d -p 8081:8080 my-spring-boot-app
+          docker run -d -p 8081:8080 --name spring-boot-app my-spring-boot-app
           echo "Spring Boot app is running in Docker at http://localhost:8080"
 
   zap-scan:
     name: ZAP Scan Baseline
-    runs-on: self-hosted  # Use self-hosted runner
+    runs-on: self-hosted  # Use self-hosted Windows runner
     needs: Build  # Ensure this runs after the Build job completes
     continue-on-error: true
+
     steps:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Ensure zap.yaml exists and set permissions
-      - name: Ensure zap.yaml exists and set permissions
+      # Step 2: Ensure zap.yaml exists in the workflow directory
+      - name: Verify zap.yaml exists
         run: |
-          if ($env:OS -eq "Windows_NT") {
-            # Ensure zap.yaml exists for Windows
-            if (-Not (Test-Path "C:\zap\wrk\.github\zap\zap.yaml")) {
-              New-Item -ItemType File -Path "C:\zap\wrk\.github\zap\zap.yaml" -Force
-            }
-            # Set permissions using ICACLS for Windows
-            icacls "C:\zap\wrk\.github\zap\zap.yaml" /grant Everyone:F /T
-          } else {
-            # For Linux or macOS, ensure the file is readable and writable
-            chmod a+rwx '/zap/wrk/.github/zap/zap.yaml'
+          if (-Not (Test-Path ".github\workflows\zap.yaml")) {
+            Write-Host "zap.yaml not found in .github\workflows directory."
+            exit 1
           }
+          Write-Host "zap.yaml exists."
 
       # Step 3: Run ZAP Scan using the zaproxy/action-baseline action
       - name: ZAP Scan
@@ -82,7 +77,7 @@ jobs:
           token: ${{ secrets.PAT_TOKEN }}  # Use PAT token instead of GITHUB_TOKEN
           target: "http://host.docker.internal:8080"  # Update to point to your local Docker container
           cmd_options: |
-            chmod a+rwx '/zap/wrk/zap.yaml'  # Ensure the zap.yaml file has appropriate permissions
+            -c .github/workflows/zap.yaml  # Pass the zap.yaml file for configuration
           allow_issue_writing: false  # Don't allow automatic writing of issues
 
       # Step 4: Upload the ZAP Scan report as an artifact
@@ -95,10 +90,11 @@ jobs:
 
   StopDocker:
     name: Stop Docker Container
-    runs-on: ubuntu-latest
+    runs-on: windows-latest
     needs: zap-scan
     steps:
+      # Step 1: Stop the Docker container for the Spring Boot App
       - name: Stop Spring Boot App Container
         run: |
-          docker ps -q --filter "ancestor=my-spring-boot-app" | xargs docker stop
-          echo "Stopped Spring Boot app container"
+          docker ps -q --filter "ancestor=my-spring-boot-app" | ForEach-Object { docker stop $_ }
+          Write-Host "Stopped Spring Boot app container"
