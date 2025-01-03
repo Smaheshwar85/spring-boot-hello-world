@@ -8,23 +8,17 @@ on:
 jobs:
   Build:
     name: Build and Analyze
-    runs-on: self-hosted  # Use self-hosted runner
+    runs-on: self-hosted
 
     steps:
-      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
-        with:
-          fetch-depth: 0  # Ensure full history for better analysis relevance
 
-      # Step 2: Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
-          distribution: 'zulu'  # Optional, alternative distributions are available.
 
-      # Step 3: Cache Maven dependencies
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -32,73 +26,55 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Step 4: Build the Project and run SonarQube analysis
       - name: Build and Analyze with Maven and SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn clean verify sonar:sonar
 
-      # Step 5: Build the Docker Image for the Spring Boot App
-      - name: Build Docker Image for Spring Boot App
-        run: |
-          docker build -t my-spring-boot-app .
+      - name: Build Docker Image
+        run: docker build -t my-spring-boot-app .
 
-      # Step 6: Run the Spring Boot App in Docker
-      - name: Run the Spring Boot App in Docker
-        run: |
-          docker run -d -p 8081:8080 my-spring-boot-app
-          echo "Spring Boot app is running in Docker at http://localhost:8080"
+      - name: Run Docker Container
+        run: docker run -d -p 8081:8080 --name my-app-container my-spring-boot-app
 
   zap-scan:
     name: ZAP Scan Baseline
-    runs-on: self-hosted  # Use self-hosted runner
-    needs: Build  # Ensure this runs after the Build job completes
-    continue-on-error: true
+    runs-on: self-hosted
+    needs: Build
     steps:
-      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Ensure zap.yaml exists and set permissions
-      - name: Ensure zap.yaml exists and set permissions
+      - name: Create zap.yaml File
         run: |
-          if ($env:OS -eq "Windows_NT") {
-            # Ensure zap.yaml exists for Windows
-            if (-Not (Test-Path "C:\zap\wrk\.github\workflows\zap.yaml")) {
-              New-Item -ItemType File -Path "C:\zap\wrk\.github\workflows\zap.yaml" -Force
-            }
-            # Set permissions using ICACLS for Windows
-            icacls "C:\zap\wrk\.github\workflows\zap.yaml" /grant Everyone:F /T
-          } else {
-            # For Linux or macOS, ensure the file is readable and writable
-            chmod a+rwx '/zap/wrk/.github/workflows/zap.yaml'
+          $zapFile = "C:\zap\wrk\.github\workflows\zap.yaml"
+          if (-Not (Test-Path $zapFile)) {
+            New-Item -ItemType File -Path $zapFile -Force
           }
 
-      # Step 3: Run ZAP Scan using the zaproxy/action-baseline action
-      - name: ZAP Scan
+      - name: Run ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token instead of GITHUB_TOKEN
-          target: "http://host.docker.internal:8080"  # Update to point to your local Docker container
+          token: ${{ secrets.PAT_TOKEN }}
+          target: "http://host.docker.internal:8080"
           cmd_options: |
-            chmod a+rwx '/zap/wrk/zap.yaml'  # Ensure the zap.yaml file has appropriate permissions
-          allow_issue_writing: false  # Don't allow automatic writing of issues
+            -t "http://host.docker.internal:8080"
+            -r zap-report.html
+          allow_issue_writing: false
 
-      # Step 4: Upload the ZAP Scan report as an artifact
-      - name: Upload Scan Report
+      - name: Upload ZAP Report
         uses: actions/upload-artifact@v4
         with:
-          name: zap_report.html  # The name of the artifact to be uploaded
-          path: zap-report.html  # Path to the generated ZAP scan report
-          retention-days: 1  # Set the retention period for the artifact
+          name: zap-report
+          path: zap-report.html
 
   StopDocker:
     name: Stop Docker Container
-    runs-on: ubuntu-latest
+    runs-on: self-hosted
     needs: zap-scan
     steps:
-      - name: Stop Spring Boot App Container
+      - name: Stop and Remove Container
         run: |
-          docker ps -q --filter "ancestor=my-spring-boot-app" | xargs docker stop
-          echo "Stopped Spring Boot app container"
+          docker stop my-app-container
+          docker rm my-app-container
