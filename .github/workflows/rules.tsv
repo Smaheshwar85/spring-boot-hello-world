@@ -1,0 +1,6 @@
+# This is a comment line
+# Format: rule_id    enabled    severity   additional_options
+
+SQL Injection    true    High    -payload=SQLPayloads
+Cross-Site Scripting    false    Medium
+Path Traversal    true    High    -risk=Critical
