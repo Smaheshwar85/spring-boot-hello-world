@@ -1,30 +1,32 @@
-name: Build and Scan Spring Boot App
-
 on:
   push:
     branches:
-      - main
-      
+      - main  # Trigger workflow when pushing to the main branch
+
 jobs:
   Build:
     name: Build and Analyze
-    runs-on: self-hosted  # Use self-hosted Windows runner
+    runs-on: self-hosted  # Use self-hosted runner
 
     steps:
-      # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
         with:
           fetch-depth: 0  # Ensure full history for better analysis relevance
 
-      # Step 2: Set up JDK 17
       - name: Set up JDK 17
         uses: actions/setup-java@v4
         with:
           java-version: 17
           distribution: 'zulu'  # Optional, alternative distributions are available.
 
-      # Step 3: Cache Maven dependencies
+      - name: Cache SonarQube packages
+        uses: actions/cache@v4
+        with:
+          path: ~/.sonar/cache
+          key: ${{ runner.os }}-sonar
+          restore-keys: ${{ runner.os }}-sonar
+
       - name: Cache Maven packages
         uses: actions/cache@v4
         with:
@@ -32,55 +34,45 @@ jobs:
           key: ${{ runner.os }}-m2-${{ hashFiles('**/pom.xml') }}
           restore-keys: ${{ runner.os }}-m2
 
-      # Step 4: Build the Project and run SonarQube analysis
       - name: Build and Analyze with Maven and SonarQube
         env:
           SONAR_TOKEN: ${{ secrets.SONAR_TOKEN }}
           SONAR_HOST_URL: ${{ secrets.SONAR_HOST_URL }}
         run: mvn clean verify sonar:sonar
 
-      # Step 5: Build the Docker Image for the Spring Boot App
+      - name: Build the Project
+        run: mvn clean install
+
       - name: Build Docker Image for Spring Boot App
         run: |
           docker build -t my-spring-boot-app .
 
-      # Step 6: Run the Spring Boot App in Docker
       - name: Run the Spring Boot App in Docker
         run: |
-          docker run -d -p 8081:8080 --name spring-boot-app my-spring-boot-app
+          docker run -d -p 8081:8080 my-spring-boot-app
           echo "Spring Boot app is running in Docker at http://localhost:8080"
 
   zap-scan:
     name: ZAP Scan Baseline
-    runs-on: self-hosted  # Use self-hosted Windows runner
-    needs: Build  # Ensure this runs after the Build job completes
-    continue-on-error: true
+    runs-on: self-hosted  # Use self-hosted runner
+    continue-on-error: true  # Continue even if ZAP scan fails
 
     steps:
       # Step 1: Checkout the code from the repository
       - name: Checkout code
         uses: actions/checkout@v4
 
-      # Step 2: Ensure zap.yaml exists in the workflow directory
-      - name: Verify zap.yaml exists
-        run: |
-          if (-Not (Test-Path ".github\workflows\zap.yaml")) {
-            Write-Host "zap.yaml not found in .github\workflows directory."
-            exit 1
-          }
-          Write-Host "zap.yaml exists."
-
-      # Step 3: Run ZAP Scan using the zaproxy/action-baseline action
+      # Step 2: Run ZAP Scan using the zaproxy/action-baseline action
       - name: ZAP Scan
         uses: zaproxy/action-baseline@v0.12.0
         with:
-          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token instead of GITHUB_TOKEN
-          target: "http://host.docker.internal:8080"  # Update to point to your local Docker container
+          token: ${{ secrets.PAT_TOKEN }}  # Use PAT token for authentication
+          target: "http://host.docker.internal:8080"  # Pointing to the local Docker container
           cmd_options: |
-            -c .github/workflows/zap.yaml  # Pass the zap.yaml file for configuration
+            chmod a+rwx '/zap/wrk/zap.yaml'  # Ensure the zap.yaml file has appropriate permissions
           allow_issue_writing: false  # Don't allow automatic writing of issues
 
-      # Step 4: Upload the ZAP Scan report as an artifact
+      # Step 3: Upload the ZAP Scan report as an artifact
       - name: Upload Scan Report
         uses: actions/upload-artifact@v4
         with:
@@ -90,11 +82,10 @@ jobs:
 
   StopDocker:
     name: Stop Docker Container
-    runs-on: windows-latest
-    needs: zap-scan
+    runs-on: ubuntu-latest
+    needs: zap-scan  # Run after zap-scan job completes
     steps:
-      # Step 1: Stop the Docker container for the Spring Boot App
       - name: Stop Spring Boot App Container
         run: |
-          docker ps -q --filter "ancestor=my-spring-boot-app" | ForEach-Object { docker stop $_ }
-          Write-Host "Stopped Spring Boot app container"
+          docker ps -q --filter "ancestor=my-spring-boot-app" | xargs docker stop
+          echo "Stopped Spring Boot app container"
