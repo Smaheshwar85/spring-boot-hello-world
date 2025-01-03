@@ -1,5 +1,6 @@
 name: Build and Scan Spring Boot App
 
+
 on:
   push:
     branches:
