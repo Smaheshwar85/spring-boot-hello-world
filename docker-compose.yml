@@ -1,0 +1,48 @@
+version: '3.8'
+
+services:
+  zookeeper:
+    image: confluentinc/cp-zookeeper:latest
+    container_name: zookeeper
+    ports:
+      - "2181:2181"
+    environment:
+      ZOOKEEPER_CLIENT_PORT: 2181
+      ZOOKEEPER_TICK_TIME: 2000
+
+  kafka:
+    image: confluentinc/cp-kafka:latest
+    container_name: kafka
+    ports:
+      - "9092:9092"
+    environment:
+      KAFKA_BROKER_ID: 1
+      KAFKA_ZOOKEEPER_CONNECT: zookeeper:2181
+      KAFKA_ADVERTISED_LISTENERS: PLAINTEXT://kafka:9092
+      KAFKA_LISTENER_SECURITY_PROTOCOL_MAP: PLAINTEXT:PLAINTEXT
+      KAFKA_OFFSETS_TOPIC_REPLICATION_FACTOR: 1
+    depends_on:
+      - zookeeper
+
+  solace:
+    image: solace/solace-pubsub-standard
+    container_name: solace
+    ports:
+      - "8080:8080"   # Web UI
+      - "55555:55555" # Message VPN
+      - "9000:9000"   # REST
+
+  kafka-to-solace:
+    build: .
+    container_name: kafka-to-solace
+    environment:
+      KAFKA_BROKER: kafka:9092
+      KAFKA_TOPIC: test-topic
+      SOLACE_HOST: tcp://solace:55555
+      SOLACE_VPN: default
+      SOLACE_USERNAME: admin
+      SOLACE_PASSWORD: admin
+      THREAD_COUNT: 5
+    depends_on:
+      - kafka
+      - solace
